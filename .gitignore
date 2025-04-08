@@ -1,0 +1,32 @@
+# Carpetas de compilación y entornos
+/target/
+/bin/
+/build/
+/dist/
+
+# Archivos de configuración de IDE
+.classpath
+.project
+.settings/
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.nb-gradle/
+nbproject/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Maven Wrapper
+!mvnw
+!mvnw.cmd
+!.mvn/wrapper/maven-wrapper.jar
+
+# Propiedades sensibles
+src/main/resources/application-dev.properties
+
+# Otros
+HELP.md
