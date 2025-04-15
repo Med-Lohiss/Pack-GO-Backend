@@ -16,6 +16,7 @@ import com.packandgo.service.auth.AuthService;
 import com.packandgo.service.EmailService;
 import com.packandgo.utils.JwtUtil;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -29,6 +30,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -143,6 +145,11 @@ public class AuthController {
         response.put("role", ((Usuario) userDetails).getRolUsuario().name());
 
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping("/google-login")
+    public void redirectToGoogle(HttpServletResponse response) throws IOException {
+        response.sendRedirect("/oauth2/authorization/google");
     }
     
     @GetMapping("/oauth2/success")
