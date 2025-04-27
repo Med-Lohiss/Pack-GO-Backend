@@ -1,11 +1,15 @@
 package com.packandgo.service;
 
 import com.packandgo.dto.EmpleadoDTO;
+import com.packandgo.dto.EmpresaDTO;
 import com.packandgo.dto.FiltroEmpleadoDTO;
 import com.packandgo.dto.SolicitudRegistro;
 import com.packandgo.entity.Empleado;
+import com.packandgo.entity.Empresa;
 import com.packandgo.enums.RolUsuario;
 import com.packandgo.repository.EmpleadoRepository;
+import com.packandgo.repository.EmpresaRepository;
+
 import org.springframework.security.crypto.password.PasswordEncoder; // Para encriptar la contraseña
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,155 +26,211 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
 
-    private final EmpleadoRepository empleadoRepository;
-    private final PasswordEncoder passwordEncoder; // Se inyecta el PasswordEncoder
+	private final EmpleadoRepository empleadoRepository;
+	private final PasswordEncoder passwordEncoder;
+	private final EmpresaRepository empresaRepository;
 
-    // Método para convertir SolicitudRegistro (DTO) a Empleado (Entidad)
-    private Empleado toEntity(SolicitudRegistro solicitudRegistro) {
-        Empleado empleado = new Empleado();
-        empleado.setNombre(solicitudRegistro.getNombre());
-        empleado.setEmail(solicitudRegistro.getEmail());
-        empleado.setDni(solicitudRegistro.getDni());
-        empleado.setApellido1(solicitudRegistro.getApellido1());
-        empleado.setApellido2(solicitudRegistro.getApellido2());
-        empleado.setTelefono(solicitudRegistro.getTelefono());
-        empleado.setDomicilio(solicitudRegistro.getDomicilio());
-        empleado.setSalario(solicitudRegistro.getSalario());
-        empleado.setFechaContratacion(solicitudRegistro.getFechaContratacion());
-        empleado.setFechaCese(solicitudRegistro.getFechaCese());
+	private Empleado toEntity(SolicitudRegistro solicitudRegistro) {
+		Empleado empleado = new Empleado();
+		empleado.setNombre(solicitudRegistro.getNombre());
+		empleado.setEmail(solicitudRegistro.getEmail());
+		empleado.setDni(solicitudRegistro.getDni());
+		empleado.setApellido1(solicitudRegistro.getApellido1());
+		empleado.setApellido2(solicitudRegistro.getApellido2());
+		empleado.setTelefono(solicitudRegistro.getTelefono());
+		empleado.setDomicilio(solicitudRegistro.getDomicilio());
+		empleado.setSalario(solicitudRegistro.getSalario());
+		empleado.setFechaContratacion(solicitudRegistro.getFechaContratacion());
+		empleado.setFechaCese(solicitudRegistro.getFechaCese());
 
-        // Asignamos el rol de usuario (se puede cambiar según el rol en el DTO)
-        empleado.setRolUsuario(solicitudRegistro.getRolUsuario());
+		empleado.setRolUsuario(solicitudRegistro.getRolUsuario());
 
-        return empleado;
-    }
+		return empleado;
+	}
 
-    // Método para convertir Empleado a EmpleadoDTO
-    private EmpleadoDTO toDTO(Empleado empleado) {
-        EmpleadoDTO dto = new EmpleadoDTO();
-        dto.setId(empleado.getId());
-        dto.setNombre(empleado.getNombre());
-        dto.setEmail(empleado.getEmail());
-        dto.setRolUsuario(empleado.getRolUsuario());
-        dto.setProvider(empleado.getProvider());
-        dto.setFechaCreacion(empleado.getFechaCreacion());
-        dto.setFechaBaja(empleado.getFechaBaja());
-        dto.setDni(empleado.getDni());
-        dto.setApellido1(empleado.getApellido1());
-        dto.setApellido2(empleado.getApellido2());
-        dto.setTelefono(empleado.getTelefono());
-        dto.setDomicilio(empleado.getDomicilio());
-        dto.setSalario(empleado.getSalario());
-        dto.setFechaContratacion(empleado.getFechaContratacion());
-        dto.setFechaCese(empleado.getFechaCese());
-        return dto;
-    }
+	private EmpleadoDTO toDTO(Empleado empleado) {
+		EmpleadoDTO dto = new EmpleadoDTO();
+		dto.setId(empleado.getId());
+		dto.setNombre(empleado.getNombre());
+		dto.setEmail(empleado.getEmail());
+		dto.setRolUsuario(empleado.getRolUsuario());
+		dto.setProvider(empleado.getProvider());
+		dto.setFechaCreacion(empleado.getFechaCreacion());
+		dto.setFechaBaja(empleado.getFechaBaja());
+		dto.setDni(empleado.getDni());
+		dto.setApellido1(empleado.getApellido1());
+		dto.setApellido2(empleado.getApellido2());
+		dto.setTelefono(empleado.getTelefono());
+		dto.setDomicilio(empleado.getDomicilio());
+		dto.setSalario(empleado.getSalario());
+		dto.setFechaContratacion(empleado.getFechaContratacion());
+		dto.setFechaCese(empleado.getFechaCese());
+		return dto;
+	}
 
-    @Override
-    public EmpleadoDTO crearEmpleado(SolicitudRegistro solicitudRegistro) {
-        Empleado empleado = toEntity(solicitudRegistro);
-        // Encriptar la contraseña antes de guardar
-        String contrasenaEncriptada = passwordEncoder.encode(solicitudRegistro.getPassword());
-        
-        // Setear la contraseña encriptada en el empleado
-        empleado.setPassword(contrasenaEncriptada);
+	@Override
+	public EmpleadoDTO crearEmpleado(SolicitudRegistro solicitudRegistro) {
+		Empleado empleado = toEntity(solicitudRegistro);
 
-        // Asignar el rol EMPLEADO si no se ha asignado
-        if (empleado.getRolUsuario() == null) {
-            empleado.setRolUsuario(RolUsuario.EMPLEADO);
-        }
+		String contrasenaEncriptada = passwordEncoder.encode(solicitudRegistro.getPassword());
 
-        // Guardar el empleado en el repositorio
-        Empleado saved = empleadoRepository.save(empleado);
-        return toDTO(saved);
-    }
+		empleado.setPassword(contrasenaEncriptada);
 
-    @Override
-    public List<EmpleadoDTO> listarEmpleados() {
-        return empleadoRepository.findAll()
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-    }
+		if (empleado.getRolUsuario() == null) {
+			empleado.setRolUsuario(RolUsuario.EMPLEADO);
+		}
 
-    @Override
-    public Optional<EmpleadoDTO> obtenerEmpleadoPorId(Long id) {
-        return empleadoRepository.findById(id).map(this::toDTO);
-    }
+		Empleado saved = empleadoRepository.save(empleado);
+		return toDTO(saved);
+	}
 
-    @Override
-    @Transactional
-    public EmpleadoDTO actualizarEmpleado(Long id, SolicitudRegistro solicitudRegistro) {
-        Empleado empleadoExistente = empleadoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado con ID: " + id));
+	@Override
+	public List<EmpleadoDTO> listarEmpleados() {
+		return empleadoRepository.findAll().stream().map(this::toDTO).collect(Collectors.toList());
+	}
 
-        // Actualizamos los campos del empleado con la información del DTO
-        empleadoExistente.setNombre(solicitudRegistro.getNombre());
-        empleadoExistente.setEmail(solicitudRegistro.getEmail());
-        empleadoExistente.setDni(solicitudRegistro.getDni());
-        empleadoExistente.setApellido1(solicitudRegistro.getApellido1());
-        empleadoExistente.setApellido2(solicitudRegistro.getApellido2());
-        empleadoExistente.setTelefono(solicitudRegistro.getTelefono());
-        empleadoExistente.setDomicilio(solicitudRegistro.getDomicilio());
-        empleadoExistente.setSalario(solicitudRegistro.getSalario());
-        empleadoExistente.setFechaContratacion(solicitudRegistro.getFechaContratacion());
-        empleadoExistente.setFechaCese(solicitudRegistro.getFechaCese());
+	@Override
+	public Optional<EmpleadoDTO> obtenerEmpleadoPorId(Long id) {
+		return empleadoRepository.findById(id).map(this::toDTO);
+	}
 
-        // Guardamos el empleado actualizado
-        return toDTO(empleadoExistente);
-    }
+	@Override
+	@Transactional
+	public EmpleadoDTO actualizarEmpleado(Long id, EmpleadoDTO empleadoDTO) {
+		Empleado empleadoExistente = empleadoRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Empleado no encontrado con ID: " + id));
 
-    @Override
-    public void eliminarEmpleado(Long id) {
-        if (!empleadoRepository.existsById(id)) {
-            throw new RuntimeException("Empleado no encontrado");
-        }
-        empleadoRepository.deleteById(id);
-    }
+		empleadoExistente.setNombre(empleadoDTO.getNombre());
+		empleadoExistente.setEmail(empleadoDTO.getEmail());
+		empleadoExistente.setDni(empleadoDTO.getDni());
+		empleadoExistente.setApellido1(empleadoDTO.getApellido1());
+		empleadoExistente.setApellido2(empleadoDTO.getApellido2());
+		empleadoExistente.setTelefono(empleadoDTO.getTelefono());
+		empleadoExistente.setDomicilio(empleadoDTO.getDomicilio());
+		empleadoExistente.setSalario(empleadoDTO.getSalario());
+		empleadoExistente.setFechaContratacion(empleadoDTO.getFechaContratacion());
+		empleadoExistente.setFechaCese(empleadoDTO.getFechaCese());
 
-    @Override
-    public List<EmpleadoDTO> filtrarEmpleados(FiltroEmpleadoDTO filtro) {
-        List<Empleado> empleados = empleadoRepository.findAll();
+		if (empleadoDTO.getRolUsuario() != null) {
+			empleadoExistente.setRolUsuario(empleadoDTO.getRolUsuario());
+		}
 
-        Stream<Empleado> stream = empleados.stream();
+		System.out.println("Empleado actualizado: " + empleadoExistente);
 
-        if (filtro.getNombre() != null) {
-            stream = stream.filter(e -> e.getNombre() != null && e.getNombre().toLowerCase().contains(filtro.getNombre().toLowerCase()));
-        }
-        if (filtro.getApellido1() != null) {
-            stream = stream.filter(e -> e.getApellido1() != null && e.getApellido1().toLowerCase().contains(filtro.getApellido1().toLowerCase()));
-        }
-        if (filtro.getApellido2() != null) {
-            stream = stream.filter(e -> e.getApellido2() != null && e.getApellido2().toLowerCase().contains(filtro.getApellido2().toLowerCase()));
-        }
-        if (filtro.getDni() != null) {
-            stream = stream.filter(e -> e.getDni() != null && e.getDni().toLowerCase().contains(filtro.getDni().toLowerCase()));
-        }
-        if (filtro.getEmail() != null) {
-            stream = stream.filter(e -> e.getEmail() != null && e.getEmail().toLowerCase().contains(filtro.getEmail().toLowerCase()));
-        }
+		empleadoRepository.saveAndFlush(empleadoExistente);
+		return toDTO(empleadoExistente);
+	}
 
-        // Ordenamiento simple
-        Comparator<Empleado> comparator = null;
-        if ("salario".equalsIgnoreCase(filtro.getOrdenarPor())) {
-            comparator = Comparator.comparing(Empleado::getSalario, Comparator.nullsLast(Double::compareTo));
-        } else if ("fechaContratacion".equalsIgnoreCase(filtro.getOrdenarPor())) {
-            comparator = Comparator.comparing(Empleado::getFechaContratacion, Comparator.nullsLast(Date::compareTo));
-        }
+	@Override
+	public void eliminarEmpleado(Long id) {
+		if (!empleadoRepository.existsById(id)) {
+			throw new RuntimeException("Empleado no encontrado");
+		}
+		empleadoRepository.deleteById(id);
+	}
 
-        if (comparator != null) {
-            if ("desc".equalsIgnoreCase(filtro.getOrden())) {
-                comparator = comparator.reversed();
-            }
-            stream = stream.sorted(comparator);
-        }
+	@Override
+	public List<EmpleadoDTO> filtrarEmpleados(FiltroEmpleadoDTO filtro) {
+		List<Empleado> empleados = empleadoRepository.findAll();
 
-        return stream.map(this::toDTO).collect(Collectors.toList());
-    }
+		Stream<Empleado> stream = empleados.stream();
 
-    // Implementación del método buscarUsuarioPorEmail
-    @Override
-    public Optional<EmpleadoDTO> buscarUsuarioPorEmail(String email) {
-        return empleadoRepository.findByEmail(email).map(this::toDTO);
-    }
+		if (filtro.getNombre() != null) {
+			stream = stream.filter(e -> e.getNombre() != null
+					&& e.getNombre().toLowerCase().contains(filtro.getNombre().toLowerCase()));
+		}
+		if (filtro.getApellido1() != null) {
+			stream = stream.filter(e -> e.getApellido1() != null
+					&& e.getApellido1().toLowerCase().contains(filtro.getApellido1().toLowerCase()));
+		}
+		if (filtro.getApellido2() != null) {
+			stream = stream.filter(e -> e.getApellido2() != null
+					&& e.getApellido2().toLowerCase().contains(filtro.getApellido2().toLowerCase()));
+		}
+		if (filtro.getDni() != null) {
+			stream = stream.filter(
+					e -> e.getDni() != null && e.getDni().toLowerCase().contains(filtro.getDni().toLowerCase()));
+		}
+		if (filtro.getEmail() != null) {
+			stream = stream.filter(
+					e -> e.getEmail() != null && e.getEmail().toLowerCase().contains(filtro.getEmail().toLowerCase()));
+		}
+
+		Comparator<Empleado> comparator = null;
+		if ("salario".equalsIgnoreCase(filtro.getOrdenarPor())) {
+			comparator = Comparator.comparing(Empleado::getSalario, Comparator.nullsLast(Double::compareTo));
+		} else if ("fechaContratacion".equalsIgnoreCase(filtro.getOrdenarPor())) {
+			comparator = Comparator.comparing(Empleado::getFechaContratacion, Comparator.nullsLast(Date::compareTo));
+		}
+
+		if (comparator != null) {
+			if ("desc".equalsIgnoreCase(filtro.getOrden())) {
+				comparator = comparator.reversed();
+			}
+			stream = stream.sorted(comparator);
+		}
+
+		return stream.map(this::toDTO).collect(Collectors.toList());
+	}
+
+	@Override
+	public Optional<EmpleadoDTO> buscarUsuarioPorEmail(String email) {
+		return empleadoRepository.findByEmail(email).map(this::toDTO);
+	}
+
+	private Empresa toEntity(EmpresaDTO dto) {
+		return Empresa.builder().id(dto.getId()).cif(dto.getCif()).denominacionSocial(dto.getDenominacionSocial())
+				.domicilio(dto.getDomicilio()).fechaConstitucion(dto.getFechaConstitucion())
+				.direccionWeb(dto.getDireccionWeb()).telefono(dto.getTelefono()).emailContacto(dto.getEmailContacto())
+				.build();
+	}
+
+	private EmpresaDTO toDTO(Empresa empresa) {
+		return EmpresaDTO.builder().id(empresa.getId()).cif(empresa.getCif())
+				.denominacionSocial(empresa.getDenominacionSocial()).domicilio(empresa.getDomicilio())
+				.fechaConstitucion(empresa.getFechaConstitucion()).direccionWeb(empresa.getDireccionWeb())
+				.telefono(empresa.getTelefono()).emailContacto(empresa.getEmailContacto()).build();
+	}
+
+	@Override
+	public EmpresaDTO crearEmpresa(EmpresaDTO empresaDTO) {
+
+		if (empresaDTO.getId() != null) {
+			throw new IllegalArgumentException("El ID no debe estar presente al crear una nueva empresa.");
+		}
+
+		Empresa empresa = toEntity(empresaDTO);
+
+		empresa = empresaRepository.save(empresa);
+
+		return toDTO(empresa);
+	}
+
+	@Override
+	public Optional<EmpresaDTO> obtenerEmpresa() {
+		return empresaRepository.findAll().stream().findFirst().map(this::toDTO);
+	}
+
+	@Override
+	@Transactional
+	public EmpresaDTO actualizarEmpresa(EmpresaDTO empresaDTO) {
+
+		if (empresaDTO.getId() == null) {
+			throw new IllegalArgumentException("El ID es necesario para actualizar la empresa.");
+		}
+
+		Empresa empresaExistente = empresaRepository.findById(empresaDTO.getId())
+				.orElseThrow(() -> new RuntimeException("Empresa no encontrada con ID: " + empresaDTO.getId()));
+
+		empresaExistente.setCif(empresaDTO.getCif());
+		empresaExistente.setDenominacionSocial(empresaDTO.getDenominacionSocial());
+		empresaExistente.setDomicilio(empresaDTO.getDomicilio());
+		empresaExistente.setFechaConstitucion(empresaDTO.getFechaConstitucion());
+		empresaExistente.setDireccionWeb(empresaDTO.getDireccionWeb());
+		empresaExistente.setTelefono(empresaDTO.getTelefono());
+		empresaExistente.setEmailContacto(empresaDTO.getEmailContacto());
+
+		return toDTO(empresaExistente);
+	}
+
 }

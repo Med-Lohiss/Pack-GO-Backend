@@ -5,6 +5,7 @@ import com.packandgo.service.UsuarioService;
 import com.packandgo.service.auth.CustomOAuth2UserService;
 import com.packandgo.service.auth.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,75 +36,75 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtFilterAuthentication jwtFilterAuthentication;
-    private final UsuarioService usuarioService;
-    private final CustomOAuth2UserService customOAuth2UserService;
-    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+	private final JwtFilterAuthentication jwtFilterAuthentication;
+	private final UsuarioService usuarioService;
+	private final CustomOAuth2UserService customOAuth2UserService;
+	private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
-                .requestMatchers("/api/admin/**").hasAuthority(RolUsuario.ADMIN.name())
-                .requestMatchers("/api/cliente/**").hasAuthority(RolUsuario.CLIENTE.name())
-                .requestMatchers("/api/empleado/**").hasAuthority(RolUsuario.EMPLEADO.name())
-                .requestMatchers("/uploads/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtFilterAuthentication, UsernamePasswordAuthenticationFilter.class)
-            .oauth2Login(oauth2 -> oauth2
-                .authorizationEndpoint(authEndpoint -> 
-                    authEndpoint.authorizationRequestRepository(authorizationRequestRepository())
-                )
-                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                .successHandler(oAuth2SuccessHandler)
-            );
+	@Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+	private String googleRedirectUri;
 
-        return http.build();
-    }
+	@Bean
+	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+		http.csrf(csrf -> csrf.disable()).cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.authorizeHttpRequests(auth -> auth
+						.requestMatchers("/api/auth/**", "/oauth2/**", "/api/cliente/pexels-imagen", "/api/home/**")
+						.permitAll().requestMatchers("/api/admin/**").hasAuthority(RolUsuario.ADMIN.name())
+						.requestMatchers("/api/cliente/**").hasAuthority(RolUsuario.CLIENTE.name())
+						.requestMatchers("/api/empleado/**").hasAuthority(RolUsuario.EMPLEADO.name())
+						.requestMatchers("/uploads/**").permitAll().anyRequest().authenticated())
+				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+				.authenticationProvider(authenticationProvider())
+				.addFilterBefore(jwtFilterAuthentication, UsernamePasswordAuthenticationFilter.class)
+				.oauth2Login(oauth2 -> oauth2
+						.authorizationEndpoint(authEndpoint -> authEndpoint
+								.authorizationRequestRepository(authorizationRequestRepository()))
+						.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+						.successHandler(oAuth2SuccessHandler)
+						.redirectionEndpoint(redirectionEndpoint -> redirectionEndpoint.baseUri(googleRedirectUri)));
 
-    @Bean
-    public AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository() {
-        return new HttpSessionOAuth2AuthorizationRequestRepository();
-    }
+		return http.build();
+	}
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	@Bean
+	public AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository() {
+		return new HttpSessionOAuth2AuthorizationRequestRepository();
+	}
 
-    @Bean
-    public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setUserDetailsService(usuarioService.userDetailsService());
-        provider.setPasswordEncoder(passwordEncoder());
-        return provider;
-    }
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
+	@Bean
+	public AuthenticationProvider authenticationProvider() {
+		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+		provider.setUserDetailsService(usuarioService.userDetailsService());
+		provider.setPasswordEncoder(passwordEncoder());
+		return provider;
+	}
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://packandgo-v1.vercel.app"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+	@Bean
+	public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+			throws Exception {
+		return authenticationConfiguration.getAuthenticationManager();
+	}
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+	@Bean
+	public CorsConfigurationSource corsConfigurationSource() {
+		CorsConfiguration configuration = new CorsConfiguration();
+		configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://packandgo-v1.vercel.app"));
+		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+		configuration.setAllowedHeaders(List.of("*"));
+		configuration.setAllowCredentials(true);
 
-    @Bean
-    public CookieSameSiteSupplier applicationCookieSameSiteSupplier() {
-        return CookieSameSiteSupplier.ofNone().whenHasName("JSESSIONID");
-    }
+		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+		source.registerCorsConfiguration("/**", configuration);
+		return source;
+	}
+
+	@Bean
+	public CookieSameSiteSupplier applicationCookieSameSiteSupplier() {
+		return CookieSameSiteSupplier.ofNone().whenHasName("JSESSIONID");
+	}
 }

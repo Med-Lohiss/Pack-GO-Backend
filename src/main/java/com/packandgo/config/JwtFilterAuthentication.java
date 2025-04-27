@@ -22,41 +22,43 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtFilterAuthentication extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
-    private final UsuarioService usuarioService;
-    @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        final String authHeader = request.getHeader("Authorization");
-        final String jwt;
-        final String correoUsuario;
+	private final JwtUtil jwtUtil;
+	private final UsuarioService usuarioService;
 
-        if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+	@Override
+	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
+		final String authHeader = request.getHeader("Authorization");
+		final String jwt;
+		final String correoUsuario;
 
-        jwt = authHeader.substring(7);
-        correoUsuario = jwtUtil.extraerCorreo(jwt);
+		if (StringUtils.isEmpty(authHeader) || !authHeader.startsWith("Bearer ")) {
+			filterChain.doFilter(request, response);
+			return;
+		}
 
-        if (StringUtils.isNotEmpty(correoUsuario) && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = usuarioService.userDetailsService().loadUserByUsername(correoUsuario);
-            if (jwtUtil.validarToken(jwt, userDetails)) {
-                SecurityContext context = SecurityContextHolder.createEmptyContext();
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                context.setAuthentication(authToken);
-                SecurityContextHolder.setContext(context);
-            }
-        }
-        filterChain.doFilter(request, response);
-    }
-    
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-        return path.startsWith("/login/oauth2") || 
-               path.startsWith("/oauth2") ||
-               path.equals("/api/auth/reset-password");
-    }
+		jwt = authHeader.substring(7);
+		correoUsuario = jwtUtil.extraerCorreo(jwt);
+
+		if (StringUtils.isNotEmpty(correoUsuario) && SecurityContextHolder.getContext().getAuthentication() == null) {
+			UserDetails userDetails = usuarioService.userDetailsService().loadUserByUsername(correoUsuario);
+			if (jwtUtil.validarToken(jwt, userDetails)) {
+				SecurityContext context = SecurityContextHolder.createEmptyContext();
+				UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails,
+						null, userDetails.getAuthorities());
+				authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+				context.setAuthentication(authToken);
+				SecurityContextHolder.setContext(context);
+			}
+		}
+		filterChain.doFilter(request, response);
+	}
+
+	@Override
+	protected boolean shouldNotFilter(HttpServletRequest request) {
+		String path = request.getServletPath();
+		return path.startsWith("/login/oauth2") || path.startsWith("/oauth2")
+				|| path.equals("/api/auth/reset-password");
+	}
 
 }

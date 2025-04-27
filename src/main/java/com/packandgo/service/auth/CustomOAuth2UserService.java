@@ -10,14 +10,13 @@ import java.util.Map;
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    @Override
-    public OAuth2User loadUser(OAuth2UserRequest userRequest) {
-        OAuth2User oAuth2User = super.loadUser(userRequest);
+	@Override
+	public OAuth2User loadUser(OAuth2UserRequest userRequest) {
+		OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        // Extraer datos del usuario de Google
-        Map<String, Object> attributes = oAuth2User.getAttributes();
-        System.out.println("Datos del usuario de Google: " + attributes);
+		Map<String, Object> attributes = oAuth2User.getAttributes();
+		System.out.println("Datos del usuario de Google: " + attributes);
 
-        return oAuth2User;
-    }
+		return oAuth2User;
+	}
 }

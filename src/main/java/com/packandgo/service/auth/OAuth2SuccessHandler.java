@@ -26,46 +26,45 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final UsuarioRepository usuarioRepository;
-    private final ClienteRepository clienteRepository;
-    private final JwtUtil jwtUtil;
+	private final UsuarioRepository usuarioRepository;
+	private final ClienteRepository clienteRepository;
+	private final JwtUtil jwtUtil;
 
-    @Value("${FRONTEND_URL}")
-    private String frontendUrl;
+	@Value("${FRONTEND_URL}")
+	private String frontendUrl;
 
-    @Override
-    @Transactional
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
-        DefaultOAuth2User oAuth2User = (DefaultOAuth2User) authentication.getPrincipal();
-        String email = oAuth2User.getAttribute("email");
-        String nombre = oAuth2User.getAttribute("given_name");
+	@Override
+	@Transactional
+	public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+			Authentication authentication) throws IOException {
+		DefaultOAuth2User oAuth2User = (DefaultOAuth2User) authentication.getPrincipal();
+		String email = oAuth2User.getAttribute("email");
+		String nombre = oAuth2User.getAttribute("given_name");
 
-        Optional<Usuario> existingUser = usuarioRepository.findByEmail(email);
-        Usuario usuario;
+		Optional<Usuario> existingUser = usuarioRepository.findByEmail(email);
+		Usuario usuario;
 
-        if (existingUser.isPresent()) {
-            usuario = existingUser.get();
-        } else {
-            Cliente cliente = new Cliente();
-            cliente.setNombre(nombre);
-            cliente.setEmail(email);
-            cliente.setRolUsuario(RolUsuario.CLIENTE);
-            cliente.setProvider(AuthProvider.GOOGLE);
-            cliente.setFechaCreacion(new Date());
-            usuario = clienteRepository.save(cliente);
-        }
+		if (existingUser.isPresent()) {
+			usuario = existingUser.get();
+		} else {
+			Cliente cliente = new Cliente();
+			cliente.setNombre(nombre);
+			cliente.setEmail(email);
+			cliente.setRolUsuario(RolUsuario.CLIENTE);
+			cliente.setProvider(AuthProvider.GOOGLE);
+			cliente.setFechaCreacion(new Date());
+			usuario = clienteRepository.save(cliente);
+		}
 
-        String token = jwtUtil.generarToken(usuario);
+		String token = jwtUtil.generarToken(usuario);
 
-        Cookie jwtCookie = new Cookie("jwt", token);
-        jwtCookie.setHttpOnly(true);
-        jwtCookie.setSecure(true);
-        jwtCookie.setPath("/");
-        jwtCookie.setMaxAge(24 * 60 * 60);
+		Cookie jwtCookie = new Cookie("jwt", token);
+		jwtCookie.setHttpOnly(true);
+		jwtCookie.setSecure(true);
+		jwtCookie.setPath("/");
+		jwtCookie.setMaxAge(24 * 60 * 60);
 
-        response.addCookie(jwtCookie);
-
-        // Redirigir al frontend utilizando variable de entorno
-        response.sendRedirect(frontendUrl);
-    }
+		response.addCookie(jwtCookie);
+		response.sendRedirect(frontendUrl + "/oauth2/success?token=" + token);
+	}
 }

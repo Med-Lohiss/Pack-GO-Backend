@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
@@ -36,7 +37,7 @@ public class SolicitudRegistro {
     private String dni;
     private String telefono;
     private String domicilio;
-    private Date fechaNacimiento;
+    private LocalDate fechaNacimiento;
     private MetodoPago metodoPago;
     private Boolean notificaciones = true;
 
