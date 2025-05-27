@@ -5,7 +5,6 @@ import com.packandgo.service.UsuarioService;
 import com.packandgo.service.auth.CustomOAuth2UserService;
 import com.packandgo.service.auth.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.server.CookieSameSiteSupplier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,8 +42,7 @@ public class SecurityConfig {
 	private final CustomOAuth2UserService customOAuth2UserService;
 	private final OAuth2SuccessHandler oAuth2SuccessHandler;
 
-	@Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
-	private String googleRedirectUri;
+	private static final String GOOGLE_REDIRECT_URI_PATH = "/login/oauth2/code/google";
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -74,7 +72,7 @@ public class SecurityConfig {
 					.authorizationRequestRepository(authorizationRequestRepository()))
 				.userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
 				.successHandler(oAuth2SuccessHandler)
-				.redirectionEndpoint(redirectionEndpoint -> redirectionEndpoint.baseUri(googleRedirectUri))
+				.redirectionEndpoint(redirectionEndpoint -> redirectionEndpoint.baseUri(GOOGLE_REDIRECT_URI_PATH))
 			)
 			.exceptionHandling(exception -> exception
 				.authenticationEntryPoint((request, response, authException) -> {
