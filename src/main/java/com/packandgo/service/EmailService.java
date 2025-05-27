@@ -38,7 +38,8 @@ public class EmailService {
     }
 
     public void enviarInvitacionViaje(String emailDestino, String nombreInvitador, String tituloViaje, String token) {
-        String linkAceptacion = frontendUrl + "invitacion/" + token;
+        String baseUrl = frontendUrl.endsWith("/") ? frontendUrl : frontendUrl + "/";
+    	String linkAceptacion = baseUrl + "invitacion/" + token;
 
         String asunto = "Has sido invitado a un viaje en PackAndGo";
         String cuerpo = """
