@@ -24,8 +24,10 @@ public class JwtFilterAuthentication extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final UsuarioService usuarioService;
+
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String correoUsuario;
@@ -42,7 +44,11 @@ public class JwtFilterAuthentication extends OncePerRequestFilter {
             UserDetails userDetails = usuarioService.userDetailsService().loadUserByUsername(correoUsuario);
             if (jwtUtil.validarToken(jwt, userDetails)) {
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities()
+                );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 context.setAuthentication(authToken);
                 SecurityContextHolder.setContext(context);
@@ -50,13 +56,15 @@ public class JwtFilterAuthentication extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
-    
+
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        return path.startsWith("/login/oauth2") || 
-               path.startsWith("/oauth2") ||
-               path.equals("/api/auth/reset-password");
-    }
 
+        return path.startsWith("/login/oauth2")
+                || path.startsWith("/oauth2")
+                || path.startsWith("/api/auth/")
+                || path.startsWith("/api/cliente/invitaciones/")
+                || path.equals("/api/cliente/viajes-invitado");
+    }
 }

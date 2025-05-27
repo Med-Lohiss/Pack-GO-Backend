@@ -13,18 +13,23 @@ import java.util.Date;
 @PrimaryKeyJoinColumn(name = "id_usuario")
 public class Empleado extends Usuario {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private String dni;
-    private String apellido1;
-    private String apellido2;
-    private String telefono;
-    private String domicilio;
-    private Double salario;
+	private String dni;
+	
+	private String apellido1;
+	
+	private String apellido2;
+	
+	private String telefono;
+	
+	private String domicilio;
+	
+	private Double salario;
 
-    @Temporal(TemporalType.DATE)
-    private Date fechaContratacion;
+	@Temporal(TemporalType.DATE)
+	private Date fechaContratacion;
 
-    @Temporal(TemporalType.DATE)
-    private Date fechaCese;
+	@Temporal(TemporalType.DATE)
+	private Date fechaCese;
 }

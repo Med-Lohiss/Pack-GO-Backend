@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Date;
+import java.time.LocalDate;
 
 import com.packandgo.enums.MetodoPago;
 
@@ -15,31 +15,30 @@ import com.packandgo.enums.MetodoPago;
 @PrimaryKeyJoinColumn(name = "id_usuario")
 public class Cliente extends Usuario {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    @Column(nullable = true)
-    private String apellido1;
-    
-    @Column(nullable = true)
-    private String apellido2;
-    
-    @Column(nullable = true)
-    private String dni;
-    
-    @Column(nullable = true)
-    private String telefono;
-    
-    @Column(nullable = true)
-    private String domicilio;
+	@Column(nullable = true)
+	private String apellido1;
 
-    @Temporal(TemporalType.DATE)
-    @Column(nullable = true)
-    private Date fechaNacimiento;
+	@Column(nullable = true)
+	private String apellido2;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = true)
-    private MetodoPago metodoPago;
+	@Column(nullable = true)
+	private String dni;
 
-    @Column(nullable = true)
-    private boolean notificaciones = true;
+	@Column(nullable = true)
+	private String telefono;
+
+	@Column(nullable = true)
+	private String domicilio;
+
+	@Column(nullable = true)
+	private LocalDate fechaNacimiento;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = true)
+	private MetodoPago metodoPago;
+
+	@Column(nullable = true)
+	private boolean notificaciones = true;
 }

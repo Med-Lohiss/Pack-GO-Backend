@@ -11,6 +11,6 @@ public class FiltroEmpleadoDTO {
     private String email;
     private String telefono;
     private String domicilio;
-    private String ordenarPor; // "salario", "fechaContratacion", etc.
-    private String orden; // "asc" o "desc"
+    private String ordenarPor;
+    private String orden;
 }

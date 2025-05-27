@@ -10,14 +10,14 @@ import java.util.Date;
 
 @Data
 @AllArgsConstructor
-@NoArgsConstructor 
+@NoArgsConstructor
 public class UsuarioDTO {
     private Long id;
     private String nombre;
     private String email;
     private RolUsuario rolUsuario;
     private AuthProvider provider;
+    private boolean cuentaBloqueada;
     private Date fechaCreacion;
     private Date fechaBaja;
 }
-
