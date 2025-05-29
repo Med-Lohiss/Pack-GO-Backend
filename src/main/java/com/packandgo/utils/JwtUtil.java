@@ -49,17 +49,21 @@ public class JwtUtil {
 	}
 
 	public String generarToken(UserDetails userDetails) {
-		Map<String, Object> claims = new HashMap<>();
-		List<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-				.collect(Collectors.toList());
-		claims.put("roles", roles);
-		
-		if (userDetails instanceof Usuario usuario) {
+	    Map<String, Object> claims = new HashMap<>();
+	    List<String> roles = userDetails.getAuthorities().stream()
+	        .map(GrantedAuthority::getAuthority)
+	        .collect(Collectors.toList());
+	    claims.put("roles", roles);
+
+	    if (userDetails instanceof Usuario usuario) {
 	        claims.put("cuentaBloqueada", usuario.isCuentaBloqueada());
+	        claims.put("rolUsuario", usuario.getRolUsuario().name());
+	        claims.put("email", usuario.getEmail());
 	    }
-		
-		return generarToken(claims, userDetails);
+
+	    return generarToken(claims, userDetails);
 	}
+
 
 	public boolean validarToken(String token, UserDetails userDetails) {
 		final String correo = extraerCorreo(token);
